@@ -185,61 +185,6 @@ class Pad {
   }
 }
 
-class PolySynth {
-  constructor(num) {
-    this.voices = [];
-    for(let v = 0; v < num; v++) {
-      var env = new p5.Envelope();
-      var osc = new p5.Oscillator();
-      osc.setType('sine');
-      osc.amp(env);
-      osc.start();
-      this.voices.push([-1,osc,env]);
-    }
-  }
-
-  noteAttack(pit,vel) {
-    var frq = 16.3515*exp(pit*log(2)/12);
-    var v;
-    for(v = 0; v < this.voices.length; v++) {
-      var voice = this.voices[v];
-      if(voice[0] == -1) {
-        voice[0] = pit;
-        voice[1].freq(frq);
-        //voice[2].setRange(vel,0);
-        //voice[2].setADSR(0.001,0.1,0.5,0.3);
-        voice[2].set(t1,vel,t2,l2*vel,t3,l3);
-        voice[2].triggerAttack();
-        break;
-      }
-    }
-    if(v == this.voices.length) {
-      console.log('Maximum number of voices reached.');
-    }
-  }
-
-  noteAftertouch(pit,vel) {
-    for(let v = 0; v < this.voices.length; v++) {
-      var voice = this.voices[v];
-      if(voice[0] == pit) {
-        //voice[1].amp(vel);
-        break;
-      }
-    }
-  }
-
-  noteRelease(pit) {
-    for(let v = 0; v < this.voices.length; v++) {
-      var voice = this.voices[v];
-      if(voice[0] == pit) {
-        voice[0] = -1;
-        voice[2].triggerRelease();
-        break;
-      }
-    }
-  }
-}
-
 function initMidiButton() {
   midiButton = new Clickable();
   midiButton.color = black;
@@ -440,13 +385,20 @@ function enableMidi() {
 
 //--------------------EVENTS--------------------
 
-var oct0 = 3;
-
 function handleNote(e) {
   var num = e.note.number;
   let row = Math.floor(num/10)-1;
   let col = num%10-1;
+  if(row < 0 || row > 7 || col < 0 || col > 7) {
+    return;
+  }
   pad(row,col).setColor(e.rawVelocity);
+  /*if(e.rawVelocity == 3) {
+    pad(row,col).button.text = 'here';
+  }
+  else {
+    pad(row,col).button.text = '';
+  }*/
 }
 
 function disableMidi() {
